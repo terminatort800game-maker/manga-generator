@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MangaAI — Générateur</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #08080f;
+  --ink: #0d0d1a;
+  --red: #e8192c;
+  --red2: #ff4d5e;
+  --gold: #ffd700;
+  --white: #f5f0e8;
+  --muted: #444466;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(232,25,44,0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+header {
+  position: relative;
+  z-index: 10;
+  background: var(--ink);
+  border-bottom: 4px solid var(--red);
+  display: flex;
+  align-items: stretch;
+}
+
+.header-accent {
+  width: 8px;
+  background: repeating-linear-gradient(180deg, var(--red) 0px, var(--red) 10px, var(--gold) 10px, var(--gold) 20px);
+}
+
+.header-content {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.logo-diamond {
+  width: 52px; height: 52px;
+  background: var(--red);
+  transform: rotate(45deg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 4px 4px 0 #000;
+  flex-shrink: 0;
+}
+.logo-diamond span { transform: rotate(-45deg); font-size: 22px; }
+
+.logo-text h1 {
+  font-family: 'Bangers', cursive;
+  font-size: 38px;
+  letter-spacing: 6px;
+  color: var(--white);
+  text-shadow: 3px 3px 0 var(--red), 6px 6px 0 #000;
+  line-height: 1;
+}
+.logo-text h1 span { color: var(--red); }
+.logo-text .tagline { font-size: 9px; letter-spacing: 4px; color: var(--muted); }
+
+.header-badge {
+  margin-left: auto;
+  background: rgba(232,25,44,0.1);
+  border: 2px solid var(--red);
+  padding: 6px 14px;
+  font-family: 'Bangers', cursive;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--red2);
+}
+
+.main {
+  position: relative; z-index: 1;
+  max-width: 1100px; margin: 0 auto;
+  padding: 30px 20px 80px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 800px) { .main { grid-template-columns: 1fr; } }
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+.card {
+  background: var(--ink);
+  border: 2px solid rgba(232,25,44,0.25);
+  border-radius: 4px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--red), transparent);
+}
+
+.card-title {
+  font-family: 'Bangers', cursive;
+  font-size: 16px; letter-spacing: 3px;
+  color: var(--red2); margin-bottom: 14px;
+}
+
+.select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+.field label { display: block; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
+
+select {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(232,25,44,0.3);
+  border-radius: 3px; padding: 8px 10px;
+  color: var(--white); font-size: 13px;
+  cursor: pointer; outline: none;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+select:focus { border-color: var(--red); }
+
+.panels-row { display: flex; gap: 8px; margin-bottom: 14px; }
+
+.panel-opt {
+  flex: 1; padding: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(232,25,44,0.2);
+  border-radius: 3px; text-align: center;
+  cursor: pointer; font-size: 11px; color: var(--muted);
+  transition: all 0.2s;
+  font-family: 'Bangers', cursive; letter-spacing: 1px;
+}
+.panel-opt.active, .panel-opt:hover {
+  border-color: var(--red); color: var(--red2);
+  background: rgba(232,25,44,0.08);
+}
+
+textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 3px; padding: 12px;
+  color: var(--white); font-size: 13px;
+  resize: vertical; outline: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  line-height: 1.7; min-height: 100px;
+}
+textarea:focus { border-color: rgba(232,25,44,0.5); }
+
+.btn-generate {
+  width: 100%; padding: 16px;
+  background: var(--red); border: none; border-radius: 3px;
+  color: #fff; font-family: 'Bangers', cursive;
+  font-size: 22px; letter-spacing: 4px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #000;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-generate:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #000; }
+.btn-generate:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #000; }
+.btn-generate:disabled { background: #333; color: #666; transform: none; box-shadow: 2px 2px 0 #000; cursor: not-allowed; }
+
+.tip-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.tip-list li { font-size: 11px; color: var(--muted); padding-left: 16px; position: relative; line-height: 1.5; }
+.tip-list li::before { content: '▶'; position: absolute; left: 0; color: var(--red); font-size: 8px; top: 3px; }
+
+.output { min-height: 400px; }
+
+.welcome {
+  min-height: 400px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 40px 20px;
+}
+.welcome-big { font-family: 'Bangers', cursive; font-size: 100px; color: rgba(232,25,44,0.06); letter-spacing: 10px; line-height: 1; margin-bottom: 20px; }
+.welcome-sub { font-size: 13px; color: var(--muted); line-height: 1.8; max-width: 300px; }
+.welcome-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
+.welcome-tag { background: rgba(232,25,44,0.05); border: 1px solid rgba(232,25,44,0.15); padding: 5px 12px; font-size: 11px; color: #555577; border-radius: 2px; }
+
+.manga-header { margin-bottom: 16px; }
+.manga-title { font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 4px; color: var(--white); text-shadow: 2px 2px 0 var(--red); }
+.manga-meta { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 4px; }
+.manga-story-preview { font-size: 12px; color: #445; font-style: italic; margin-top: 6px; padding: 8px 12px; border-left: 3px solid var(--red); background: rgba(232,25,44,0.03); }
+
+.manga-page { background: #fff; padding: 8px; border: 4px solid #000; box-shadow: 8px 8px 0 rgba(0,0,0,0.8); display: grid; gap: 4px; }
+
+.manga-panel { border: 3px solid #000; position: relative; overflow: hidden; background: #1a1a2e; min-height: 200px; }
+.manga-panel.span2 { grid-column: span 2; }
+.manga-panel.tall { min-height: 320px; }
+.manga-panel.short { min-height: 160px; }
+.manga-panel img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+
+.panel-loading {
+  position: absolute; inset: 0;
+  background: #0d0d1a;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; z-index: 2;
+}
+.panel-spinner { width: 32px; height: 32px; border: 3px solid rgba(232,25,44,0.15); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.panel-loading-text { font-size: 10px; color: #333355; letter-spacing: 1px; text-align: center; padding: 0 10px; }
+
+.panel-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 5; }
+.panel-num { position: absolute; top: 8px; left: 8px; width: 24px; height: 24px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; z-index: 6; font-family: 'Bangers', cursive; }
+.panel-sfx { position: absolute; top: 30%; left: 50%; transform: translate(-50%,-50%) rotate(-8deg); font-family: 'Bangers', cursive; font-size: 48px; color: var(--red); text-shadow: 3px 3px 0 #000; opacity: 0.9; pointer-events: none; z-index: 4; white-space: nowrap; letter-spacing: 3px; }
+.panel-bubble-wrap { position: absolute; bottom: 12px; right: 10px; left: 10px; z-index: 6; display: flex; justify-content: flex-end; }
+.panel-bubble { background: #fff; border: 2.5px solid #000; border-radius: 16px 16px 4px 16px; padding: 6px 12px; font-size: 11px; color: #000; font-weight: 700; box-shadow: 3px 3px 0 #000; max-width: 80%; line-height: 1.4; }
+
+.status-bar { background: rgba(232,25,44,0.06); border: 1px solid rgba(232,25,44,0.15); border-radius: 3px; padding: 10px 14px; font-size: 11px; color: var(--muted); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: pulse 1.5s ease infinite; flex-shrink: 0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.btn-regen { width: 100%; margin-top: 16px; padding: 12px; background: transparent; border: 2px solid rgba(232,25,44,0.3); color: var(--red2); font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 3px; cursor: pointer; transition: all 0.2s; border-radius: 3px; }
+.btn-regen:hover { background: rgba(232,25,44,0.08); border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-accent"></div>
+  <div class="header-content">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="logo-diamond"><span>⚡</span></div>
+      <div class="logo-text">
+        <h1>MANGA<span>AI</span></h1>
+        <div class="tagline">Génère tes pages manga avec l'IA</div>
+      </div>
+    </div>
+    <div class="header-badge">🎨 HUGGING FACE</div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-title">✏️ TON HISTOIRE</div>
+      <textarea id="story" rows="4" placeholder="Ex: Un samouraï affronte un démon sous la pluie, ses yeux brillent d'une lumière bleue..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎨 STYLE & AMBIANCE</div>
+      <div class="select-grid">
+        <div class="field"><label>Style manga</label>
+          <select id="style"><option>Shonen</option><option>Shojo</option><option>Seinen</option><option>Chibi</option><option>Webtoon</option></select>
+        </div>
+        <div class="field"><label>Genre</label>
+          <select id="genre"><option>Action</option><option>Romance</option><option>Fantaisie</option><option>Horreur</option><option>Comédie</option><option>Sci-Fi</option></select>
+        </div>
+        <div class="field"><label>Ambiance</label>
+          <select id="mood"><option>Épique</option><option>Mystérieux</option><option>Romantique</option><option>Sombre</option><option>Joyeux</option></select>
+        </div>
+        <div class="field"><label>Couleurs</label>
+          <select id="color"><option>Couleurs</option><option>Noir & Blanc</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 NOMBRE DE PANELS</div>
+      <div class="panels-row">
+        <div class="panel-opt active" onclick="selectPanels(this,2)">2</div>
+        <div class="panel-opt" onclick="selectPanels(this,3)">3</div>
+        <div class="panel-opt" onclick="selectPanels(this,4)">4</div>
+      </div>
+    </div>
+
+    <button class="btn-generate" id="btnGen" onclick="generate()">⚡ GÉNÉRER</button>
+
+    <div class="card">
+      <div class="card-title">💡 CONSEILS</div>
+      <ul class="tip-list">
+        <li>Décris une scène précise avec des détails visuels</li>
+        <li>Mentionne les personnages et leurs émotions</li>
+        <li>Ajoute l'environnement (forêt, ville, nuit...)</li>
+        <li>Chaque image prend 15-40 secondes</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="output" id="output">
+    <div class="welcome">
+      <div class="welcome-big">MANGA</div>
+      <div class="welcome-sub">Écris ton histoire à gauche et génère ta page manga avec l'IA</div>
+      <div class="welcome-tags">
+        <div class="welcome-tag">⚡ Shonen épique</div>
+        <div class="welcome-tag">🌸 Romance Shojo</div>
+        <div class="welcome-tag">🔪 Seinen sombre</div>
+        <div class="welcome-tag">😂 Chibi drôle</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STYLES = {
+  Shonen: "shonen manga style, dynamic bold ink lines, screentone shading, expressive faces",
+  Shojo: "shojo manga style, delicate linework, large sparkly eyes, floral details",
+  Seinen: "seinen manga style, realistic detailed artwork, heavy crosshatching, gritty",
+  Chibi: "chibi super deformed manga style, round big heads, tiny bodies, cute",
+  Webtoon: "webtoon manhwa style, clean digital linework, Korean comic style"
+};
+
+const SFX = {
+  Action:["SLASH!","BOOM!","CRASH!"],
+  Romance:["♡","...","~"],
+  Horreur:["SHRIEK!","CRACK...","RUN!"],
+  Comédie:["HA!","BOING!","EH?!"],
+  Fantaisie:["WHOOSH!","FLASH!","ZAPP!"],
+  "Sci-Fi":["BZZT!","ZAPP!","FIRE!"]
+};
+
+const DIALOGUES = {
+  Action:["— Je n'abandonnerai jamais !","— C'est maintenant !","— Tu ne peux pas me vaincre !"],
+  Romance:["— Je... je t'aime.","— Mon cœur bat fort...","— Ne pars pas."],
+  Horreur:["— Il y a quelque chose derrière toi.","— Fuis !","— C'est impossible..."],
+  Comédie:["— C'est pas ma faute !","— Pourquoi moi ?!","— Euh... bonjour ?"],
+  Fantaisie:["— Le pouvoir s'éveille !","— Par la magie ancienne !","— La prophétie s'accomplit."],
+  "Sci-Fi":["— Système activé.","— Le futur est maintenant.","— Initialisation complète."]
+};
+
+const PANELS_CONFIG = {
+  2:[
+    {cls:"span2 tall", angle:"wide cinematic establishing shot panoramic"},
+    {cls:"span2", angle:"close up face intense dramatic expression"}
+  ],
+  3:[
+    {cls:"span2 tall", angle:"wide establishing shot full scene"},
+    {cls:"short", angle:"medium shot character reaction emotion"},
+    {cls:"short", angle:"dynamic action movement impact"}
+  ],
+  4:[
+    {cls:"span2 tall", angle:"wide establishing panoramic shot"},
+    {cls:"short", angle:"close up face dramatic reaction"},
+    {cls:"short", angle:"dynamic action scene movement"},
+    {cls:"span2", angle:"climax final dramatic scene cinematic"}
+  ]
+};
+
+let numPanels = 2;
+
+function selectPanels(el, n) {
+  document.querySelectorAll('.panel-opt').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  numPanels = n;
+}
+
+function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+async function generateImage(prompt) {
+  const response = await fetch("/.netlify/functions/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt })
+  });
+  if (!response.ok) throw new Error(`Erreur serveur ${response.status}`);
+  const data = await response.json();
+  return data.image;
+}
+
+function buildPrompt(story, style, genre, color, angle) {
+  const styleKw = STYLES[style] || "manga art style";
+  const colorKw = color === "Noir & Blanc" ? "black and white ink illustration" : "vibrant colors digital coloring";
+  return `${story}, ${angle}, ${styleKw}, ${colorKw}, manga panel, highly detailed, professional illustration`;
+}
+
+async function generate() {
+  const story = document.getElementById("story").value.trim();
+  if (!story) { document.getElementById("story").focus(); return; }
+
+  const style = document.getElementById("style").value;
+  const genre = document.getElementById("genre").value;
+  const mood  = document.getElementById("mood").value;
+  const color = document.getElementById("color").value;
+  const sfxList = SFX[genre] || SFX.Action;
+  const dialogues = DIALOGUES[genre] || DIALOGUES.Action;
+  const panelsConf = PANELS_CONFIG[numPanels];
+
+  const btn = document.getElementById("btnGen");
+  btn.disabled = true;
+  btn.textContent = "⏳ GÉNÉRATION...";
+
+  const out = document.getElementById("output");
+  out.innerHTML = `
+    <div class="manga-header">
+      <div class="manga-title">${style.toUpperCase()} · ${genre.toUpperCase()}</div>
+      <div class="manga-meta">${mood} · ${color} · ${numPanels} panels</div>
+      <div class="manga-story-preview">"${story.slice(0,120)}${story.length>120?"...":""}"</div>
+    </div>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span id="statusText">Génération en cours... (15-40s par image)</span>
+    </div>
+    <div class="manga-page" id="mangaPage" style="grid-template-columns:${numPanels===3||numPanels===4?'1fr 1fr':'1fr'}"></div>
+    <button class="btn-regen" onclick="generate()">🔄 RÉGÉNÉRER</button>
+  `;
+
+  const page = document.getElementById("mangaPage");
+  const panelEls = [];
+
+  panelsConf.forEach((conf, i) => {
+    const div = document.createElement("div");
+    div.className = `manga-panel ${conf.cls}`;
+    div.id = `panel-${i}`;
+    const sfx = i > 0 ? getRandom(sfxList) : "";
+    const dialogue = getRandom(dialogues);
+    const barColor = ["#e8192c","#ffd700","#00b4ff","#7b61ff"][i%4];
+    div.innerHTML = `
+      <div class="panel-bar" style="background:${barColor}"></div>
+      <div class="panel-loading" id="loading-${i}">
+        <div class="panel-spinner" style="border-top-color:${barColor}"></div>
+        <div class="panel-loading-text">Image ${i+1}/${numPanels}...</div>
+      </div>
+      <div class="panel-num">${i+1}</div>
+      ${sfx?`<div class="panel-sfx" style="color:${barColor}">${sfx}</div>`:""}
+      <div class="panel-bubble-wrap"><div class="panel-bubble">${dialogue}</div></div>
+    `;
+    page.appendChild(div);
+    panelEls.push(div);
+  });
+
+  for (let i = 0; i < panelsConf.length; i++) {
+    document.getElementById("statusText").textContent = `Génération image ${i+1}/${numPanels}...`;
+    try {
+      const prompt = buildPrompt(story, style, genre, color, panelsConf[i].angle);
+      const url = await generateImage(prompt);
+      const loading = document.getElementById(`loading-${i}`);
+      if (loading) loading.style.display = "none";
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = `Panel ${i+1}`;
+      panelEls[i].insertBefore(img, panelEls[i].firstChild);
+    } catch (err) {
+      const loading = document.getElementById(`loading-${i}`);
+      if (loading) loading.innerHTML = `<div style="text-align:center;padding:20px;color:#555"><div style="font-size:30px">⚠️</div><div style="font-size:11px;margin-top:8px">${err.message}</div></div>`;
+    }
+  }
+
+  document.getElementById("statusText").textContent = `✅ Terminé !`;
+  document.querySelector(".status-dot").style.animation = "none";
+  document.querySelector(".status-dot").style.background = "#00ff88";
+  btn.disabled = false;
+  btn.textContent = "⚡ GÉNÉRER";
+}
+</script>
+</body>
+</html>
