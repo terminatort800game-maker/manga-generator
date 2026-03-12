@@ -6,17 +6,14 @@ exports.handler = async function(event) {
   const HF_TOKEN = process.env.HF_TOKEN;
   try {
     const response = await fetch(
-      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell/v1/images/generations",
+      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
       {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${HF_TOKEN}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { num_inference_steps: 4, width: 512, height: 512 }
-        })
+        body: JSON.stringify({ inputs: prompt })
       }
     );
     if (!response.ok) {
