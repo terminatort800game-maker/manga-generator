@@ -6,7 +6,7 @@ exports.handler = async function(event) {
   const HF_TOKEN = process.env.HF_TOKEN;
   try {
     const response = await fetch(
-      "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
+      "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell/v1/images/generations",
       {
         method: "POST",
         headers: {
