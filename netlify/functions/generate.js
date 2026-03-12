@@ -3,7 +3,7 @@ exports.handler = async function(event) {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
   const { prompt } = JSON.parse(event.body);
-  const HF_TOKEN = Process.env.HF_TOKEN;
+  const HF_TOKEN = process.env.HF_TOKEN;
   try {
     const response = await fetch(
       "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
